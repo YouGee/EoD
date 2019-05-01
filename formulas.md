@@ -9,7 +9,7 @@
 * min @sea level = -5°
 * max @sea level = +36
 * still fresh water freezing point = 0°
-* runnig fresh water freezing point = -10°
+* running fresh water freezing point = -10°
 * salt water freezing point = -2°
 
 # Altitude and depth
@@ -26,15 +26,18 @@ max depth    = 8000m
 ** 8000m = 14,  0,56
 
 # Seasons
-* Spring
-** light = 60%
-** temperature @sea level = +15°, variation = +/- 5°
-* Summer
-** light = 70%
-** temperature @sea level = +25°, variation = +/- 10°
-* Autumn
-** light = 40%
-** temperature @sea level = +15°, variation = +/- 5°
-* Winter
-** light = 30%
-** temperature @sea level = 5°, variation = +/- 10°
+## Spring
+* light = 60%
+* temperature @sea level = +15°, variation = +/- 5°
+
+## Summer
+* light = 70%
+* temperature @sea level = +25°, variation = +/- 10°
+
+## Autumn
+* light = 40%
+* temperature @sea level = +15°, variation = +/- 5°
+
+## Winter
+* light = 30%
+* temperature @sea level = 5°, variation = +/- 10°
