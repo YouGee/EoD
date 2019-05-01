@@ -1,8 +1,8 @@
 -- EoD Alpha 1.0.0
 -- (c)UG 2018
 
+version = 'Alpha 1.0.0'
 suit = require 'suit'
-
 
 -- Load some default values for our rectangle.
 function love.load()

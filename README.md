@@ -1,4 +1,4 @@
-# EoD
+# EoD, (c) Yougee 2018
 
 **EoD***, aka *Evolve or Die* is an humble try of a life simulator
 * writen in [Lua](https://www.lua.org/)
