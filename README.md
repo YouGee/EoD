@@ -1,7 +1,7 @@
 # EoD, (c) YouGee 2018-
 
 **EoD**, aka *Evolve or Die* is a life simulator.
-Remember [SilLife](https://en.wikipedia.org/wiki/SimLife) back in early 90's? This aims to be my humble clone :)
+Remember [SimLife](https://en.wikipedia.org/wiki/SimLife) back in early 90's? This aims to be my humble clone :)
 
 * available at [Github](https://github.com/YouGee/EoD)
 * writen in [Lua](https://www.lua.org/)
