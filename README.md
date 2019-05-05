@@ -9,3 +9,4 @@ Remember [SimLife](https://en.wikipedia.org/wiki/SimLife) back in early 90's? Th
 * and the following libraries/toolkits
 1. [Suit](https://github.com/vrld/suit) (for the GUI)
 	* Manual is [here](https://suit.readthedocs.io/en/latest/)
+2. [SQLite for Lua](https://github.com/CentauriSoldier/SQLite3-for-Lua)
