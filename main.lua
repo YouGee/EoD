@@ -98,14 +98,23 @@ function terraform()
 	for i=1,table.getn(listOfSummits) do
 		for sumXcoord,sumYcoord in string.gmatch(listOfSummits[i],"(%d+),(%d+)") do
 			io.write("\nTerraforming around summit ",i," (",sumXcoord,",",sumYcoord,")\n")
-			myNeighbors = neighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
+			myAdjNeighbors = adjneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
 			nbOfNeighbors = table.getn(myNeighbors)
-			print("\tMy ",nbOfNeighbors," neighbors are:")
+			print("\tMy ",nbOfNeighbors," adjacent neighbors are:")
 			for n=1,nbOfNeighbors do
 				neiXcoord = myNeighbors[n][1]
 				neiYcoord = myNeighbors[n][2]
 				io.write("\t\t",n,": ",neiXcoord,",",neiYcoord,"\n")
 			end
+			myDiagNeighbors = diagneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
+			nbOfNeighbors = table.getn(myNeighbors)
+			print("\tMy ",nbOfNeighbors," diagonal neighbors are:")
+			for n=1,nbOfNeighbors do
+				neiXcoord = myNeighbors[n][1]
+				neiYcoord = myNeighbors[n][2]
+				io.write("\t\t",n,": ",neiXcoord,",",neiYcoord,"\n")
+			end
+			
 		end
 	end
 
@@ -126,8 +135,8 @@ function displayWorld()
 	io.write("\n")
 end
 
-function neighborhood(x,y,xmax,ymax)
-	-- Returns the 2, 3 of 4 points around x,y on a (1,1)...(xmax,ymax) grid
+function adjneighborhood(x,y,xmax,ymax)
+	-- Returns the 2, 3 of 4 points sticking x,y on a (1,1)...(xmax,ymax) grid
 	if ((x == 1) and (y == 1)) then
 		return {{x+1,y},{x,y+1}}
 	end
@@ -138,6 +147,20 @@ function neighborhood(x,y,xmax,ymax)
 		return {{x-1,y},{x,y-1}}
 	end
 	return {{x-1,y},{x,y+1},{x,y-1},{x+1,y}}
+end
+
+function diagneighborhood(x,y,xmax,ymax)
+	-- Returns the 2, 3 of 4 points in the corners of x,y on a (1,1)...(xmax,ymax) grid
+	if ((x == 1) and (y == 1)) then
+		return {{x+1,y+1}}
+	end
+	if ((x == xmax) and (y == 1)) then
+		return {{x-1,y+1}}
+	end
+	if ((x == 1) and (y == ymax)) then
+		return {{x-1,y-1}}
+	end
+	return {{x-1,y-1},{x+1,y+1},{x+1,y-1},{x-1,y+1}}
 end
 
 function print_table(node)

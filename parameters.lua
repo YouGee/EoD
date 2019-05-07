@@ -15,11 +15,13 @@ ColorDarkGreenB = 0
 world_config_mountains_exist = true
 world_config_mountains_dimension_min = 10
 world_config_mountains_dimension_max = 100
-world_config_mountains_density_low = 30		-- out of 100
-world_config_mountains_density_mid = 40		-- out of 100
-world_config_mountains_density_high = 30	-- out of 100
 world_config_mountains_minimum_number = 2	-- No less than that
 world_config_mountains_maximum_number = 10	-- No less than that
+world_config_mountains_maxpercent_adj_point = 90	-- max % of altitude decrease for adjacent points
+world_config_mountains_minpercent_adj_point = 60	-- min % of altitude decrease for adjacent points
+world_config_mountains_maxpercent_diag_point = 80	-- max % of altitude decrease for diagonal points
+world_config_mountains_minpercent_diag_point = 50	-- min % of altitude decrease for diagonal points
+
 		-- rivers
 world_config_rivers_exist = false
 		-- seas
