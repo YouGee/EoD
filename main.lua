@@ -12,7 +12,6 @@ function love.load()
 	local major, minor, revision, codename = love.getVersion()
     local str = string.format("Version %d.%d.%d", major, minor, revision)
     io.write("We are running ",_VERSION," and LOVE ",str,"\n")
-	io.write("Dir save is: ",love.filesystem.getSaveDirectory(),"\n")
 
 	--create/open database
 	require('sqlite3')
@@ -25,29 +24,48 @@ function love.load()
 		hDB:close()
 	end
 
-    -- Display our sexy icon
-    local imageData = love.image.newImageData('EoD.png')
-    success = love.window.setIcon(imageData)
-
-    x, y, w, h = 20, 20, 60, 20
+    -- Log file creation
+    file = io.open("EoD_log.txt", "w")
+    io.output(file)
 
 	-- And God creates the world
 	world = {}
 
 	-- Let's create things
 	terraform()
+
+    -- Render terrain into a canvas, point per point
+    canvas = love.graphics.newCanvas(800, 600)
+    love.graphics.setCanvas(canvas)
+    love.graphics.clear()
+    love.graphics.setBlendMode("alpha")
+    love.graphics.scale(2,2)
+    for j=1,world_dimension_height do
+        for i=1,world_dimension_width do
+            io.write("Drawing point (",i*5,",",j*5,"), altitude ",world[i][j]," with color ")
+            myColor = altitudeToColor(world[i][j])
+            love.graphics.rectangle("fill",i*5,j*5,4,4)
+        end
+        io.write("\n")
+    end
+    love.graphics.setCanvas()
+
+    io.close(file)
+    print("Load is done")
 end
  
 -- Update (every frame)
 function love.update(dt)
-    w = w + 1
-    h = h + 1
+
 end
  
 -- Draw (every frame)
 function love.draw()
-    love.graphics.setColor(0/255, 100/255, 100/255)
-    love.graphics.rectangle("fill", x, y, w, h)
+--[[    love.graphics.setColor(0/255, 100/255, 100/255)
+    love.graphics.rectangle("fill", x, y, w, h)--]]
+
+    -- World graphical display
+    love.graphics.draw(canvas)
 end
 
 -- Keyboard
@@ -58,7 +76,7 @@ end
 -- Terraforming algorithm
 function terraform()
 
-	print('Now terraforming...')
+	io.write('Now terraforming...')
 	-- at the beginning, everything was flat
 	local i,j
 	for i=1,world_dimension_width do
@@ -88,11 +106,11 @@ function terraform()
         listOfSummits[i][2] = sumYcoord
     end
     
-    print('Our summits are: ')
+    io.write('Our summits are: ')
     for i=1,table.getn(listOfSummits) do
     	io.write(i,": ",listOfSummits[i][1],",",listOfSummits[i][2],"\n")
     end
-    print("\n")
+    io.write("\n")
 
 	displayWorld()
     
@@ -121,7 +139,6 @@ function terraform()
                 io.write(world[neiXcoord][neiYcoord]," as an average with previous altitude\n")
             end
 		end
-        displayWorld()
 
         -- diagonal points: NE, SE, SW and NW
 		myDiagNeighbors = diagneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
@@ -140,16 +157,15 @@ function terraform()
                 io.write(world[neiXcoord][neiYcoord]," as an average with previous altitude\n")
             end
 		end
-        displayWorld()
 	end
 
 	displayWorld()
-    print('Terraforming done!')
+    io.write('Terraforming done!')
 end
 
 function displayWorld()
 	-- Display world
-    print('\nOur world looks like this:\n')
+    io.write('\nOur world looks like this:\n')
     for j=1,world_dimension_height do
     	io.write("\t")
     	for i=1,world_dimension_width do
@@ -160,37 +176,55 @@ function displayWorld()
 	io.write("\n")
 end
 
+function altitudeToColor (altitude)
+    --- Gets the correct color for a given altitude
+    if (altitude >= 0) then
+        -- we"re above sea level here
+        heightPercentage = altitude/world_config_mountains_dimension_max
+        color={}
+        color.R = round((ColorLightGreenR+((ColorDarkGreenR-ColorLightGreenR)*heightPercentage)) /255,3)
+        color.G = round((ColorLightGreenG+((ColorDarkGreenG-ColorLightGreenG)*heightPercentage)) /255,3)
+        color.B = round((ColorLightGreenB+((ColorDarkGreenB-ColorLightGreenB)*heightPercentage)) /255,3)
+        io.write(color.R,",",color.G,",",color.B,"\n")
+        return {color.R,color.G,color.B}
+    else
+        -- wet feet!
+        return{128/255,159/255,255/255} -- lets be statically blue for now
+    end
+end
+
+
 function adjneighborhood(x,y,xmax,ymax)
 	-- Returns the 2, 3 of 4 points sticking x,y on a (1,1)...(xmax,ymax) grid
     
     -- point is one corner?
-    if ((x ==1) and (y==1)) then
+    if ((x==1) and (y==1)) then
         return {{1,2},{2,1}}
     end
-    if ((x ==1) and (y==ymax)) then
+    if ((x==1) and (y==ymax)) then
         return {{1,ymax-1},{2,ymax}}
     end
-    if ((x ==xmax) and (y==1)) then
+    if ((x==xmax) and (y==1)) then
         return {{xmax-1,1},{xmax,2}}
     end
-    if ((x ==xmax) and (y==ymax)) then
+    if ((x==xmax) and (y==ymax)) then
         return {{xmax,ymax-1},{xmax-1,ymax}}
     end
 
     -- point is far W
-    if (x == 1) then
+    if (x==1) then
         return {{1,y-1},{1,y+1},{2,y}}
     end
     -- point is far E
-    if (x == xmax) then
+    if (x==xmax) then
         return {{xmax,y-1},{xmax,y+1},{xmax-1,y}}
     end
     -- point is far N
-    if (y == 1) then
+    if (y==1) then
         return {{x-1,1},{x+1,1},{x,2}}
     end
     -- point is far S
-    if (y == ymax) then
+    if (y==ymax) then
         return {{x-1,ymax},{x+1,ymax},{x,ymax-1}}
     end
     
@@ -322,4 +356,8 @@ function print_table(node)
     output_str = table.concat(output)
 
     print(output_str)
+end
+
+function round(num, numDecimalPlaces)
+  return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
 end
