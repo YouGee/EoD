@@ -29,8 +29,8 @@ world_config_seas_exist = false
 
 	-- world surface size
 	-- here 80 x 60 km
-world_dimension_width = 16		-- world horizontal dimension in 10 meters
-world_dimension_height = 16		-- world vertical dimension in 10 meters
+world_dimension_width = 8		-- world horizontal dimension in 10 meters
+world_dimension_height = 8		-- world vertical dimension in 10 meters
 
 	-- vertical dimensions
 world_dimension_max_altitude = 800	-- 10 meters, 8km max

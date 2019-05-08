@@ -83,12 +83,14 @@ function terraform()
     	sumAltitude = math.random(world_config_mountains_dimension_min,world_config_mountains_dimension_max) -- so is its altitude
     	world[sumXcoord][sumYcoord] = sumAltitude
     	io.write("\tSummit ",i," is located ",sumXcoord,":",sumYcoord," and is ",sumAltitude," high.\n")
-    	listOfSummits[i] = sumXcoord..","..sumYcoord
+        listOfSummits[i] = {}
+    	listOfSummits[i][1] = sumXcoord
+        listOfSummits[i][2] = sumYcoord
     end
     
     print('Our summits are: ')
     for i=1,table.getn(listOfSummits) do
-    	print(listOfSummits[i])
+    	io.write(i,": ",listOfSummits[i][1],",",listOfSummits[i][2],"\n")
     end
     print("\n")
 
@@ -96,26 +98,49 @@ function terraform()
     
     -- Altitude semi-randomized propagation around the previous summits
 	for i=1,table.getn(listOfSummits) do
-		for sumXcoord,sumYcoord in string.gmatch(listOfSummits[i],"(%d+),(%d+)") do
-			io.write("\nTerraforming around summit ",i," (",sumXcoord,",",sumYcoord,")\n")
-			myAdjNeighbors = adjneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
-			nbOfNeighbors = table.getn(myNeighbors)
-			print("\tMy ",nbOfNeighbors," adjacent neighbors are:")
-			for n=1,nbOfNeighbors do
-				neiXcoord = myNeighbors[n][1]
-				neiYcoord = myNeighbors[n][2]
-				io.write("\t\t",n,": ",neiXcoord,",",neiYcoord,"\n")
-			end
-			myDiagNeighbors = diagneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
-			nbOfNeighbors = table.getn(myNeighbors)
-			print("\tMy ",nbOfNeighbors," diagonal neighbors are:")
-			for n=1,nbOfNeighbors do
-				neiXcoord = myNeighbors[n][1]
-				neiYcoord = myNeighbors[n][2]
-				io.write("\t\t",n,": ",neiXcoord,",",neiYcoord,"\n")
-			end
-			
+
+        sumXcoord = listOfSummits[i][1]
+        sumYcoord = listOfSummits[i][2]
+        myAltitude = world[sumXcoord][sumYcoord]
+        io.write("\nTerraforming around summit ",i," (",sumXcoord,",",sumYcoord,") altitude ",myAltitude,"\n")
+
+        -- adjacents points: N, E, S and W
+		myAdjNeighbors = adjneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
+		nbOfNeighbors = table.getn(myAdjNeighbors)
+		io.write("\tMy ",nbOfNeighbors," adjacent neighbors are:\n")
+		for n=1,nbOfNeighbors do
+			neiXcoord = myAdjNeighbors[n][1]
+			neiYcoord = myAdjNeighbors[n][2]
+            io.write("\t\t",n,": ",neiXcoord,",",neiYcoord," new altitude: ")
+            newAltitude = math.floor(math.random(world_config_mountains_minpercent_adj_point*myAltitude/100,world_config_mountains_maxpercent_adj_point*myAltitude/100)) -- new random lower altitude
+            if (world[neiXcoord][neiYcoord] == 0) then
+                world[neiXcoord][neiYcoord] = newAltitude
+                io.write(world[neiXcoord][neiYcoord]," previous was 0\n")
+            else
+                world[neiXcoord][neiYcoord] = math.floor((world[neiXcoord][neiYcoord]+newAltitude)/2)
+                io.write(world[neiXcoord][neiYcoord]," as an average with previous altitude\n")
+            end
 		end
+        displayWorld()
+
+        -- diagonal points: NE, SE, SW and NW
+		myDiagNeighbors = diagneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
+		nbOfNeighbors = table.getn(myDiagNeighbors)
+		io.write("\tMy ",nbOfNeighbors," diagonal neighbors are:\n")
+		for n=1,nbOfNeighbors do
+			neiXcoord = myDiagNeighbors[n][1]
+			neiYcoord = myDiagNeighbors[n][2]
+            io.write("\t\t",n,": ",neiXcoord,",",neiYcoord," new altitude: ")
+            newAltitude = math.floor(math.random(world_config_mountains_minpercent_diag_point*myAltitude/100,world_config_mountains_maxpercent_diag_point*myAltitude/100)) -- new random lower altitude
+            if (world[neiXcoord][neiYcoord] == 0) then
+                world[neiXcoord][neiYcoord] = newAltitude
+                io.write(world[neiXcoord][neiYcoord]," previous was 0\n")
+            else
+                world[neiXcoord][neiYcoord] = math.floor((world[neiXcoord][neiYcoord]+newAltitude)/2)
+                io.write(world[neiXcoord][neiYcoord]," as an average with previous altitude\n")
+            end
+		end
+        displayWorld()
 	end
 
 	displayWorld()
@@ -137,30 +162,78 @@ end
 
 function adjneighborhood(x,y,xmax,ymax)
 	-- Returns the 2, 3 of 4 points sticking x,y on a (1,1)...(xmax,ymax) grid
-	if ((x == 1) and (y == 1)) then
-		return {{x+1,y},{x,y+1}}
-	end
-	if ((x == xmax) and (y == 1)) then
-		return {{x-1,y},{x,y+1}}
-	end
-	if ((x == 1) and (y == ymax)) then
-		return {{x-1,y},{x,y-1}}
-	end
-	return {{x-1,y},{x,y+1},{x,y-1},{x+1,y}}
+    
+    -- point is one corner?
+    if ((x ==1) and (y==1)) then
+        return {{1,2},{2,1}}
+    end
+    if ((x ==1) and (y==ymax)) then
+        return {{1,ymax-1},{2,ymax}}
+    end
+    if ((x ==xmax) and (y==1)) then
+        return {{xmax-1,1},{xmax,2}}
+    end
+    if ((x ==xmax) and (y==ymax)) then
+        return {{xmax,ymax-1},{xmax-1,ymax}}
+    end
+
+    -- point is far W
+    if (x == 1) then
+        return {{1,y-1},{1,y+1},{2,y}}
+    end
+    -- point is far E
+    if (x == xmax) then
+        return {{xmax,y-1},{xmax,y+1},{xmax-1,y}}
+    end
+    -- point is far N
+    if (y == 1) then
+        return {{x-1,1},{x+1,1},{x,2}}
+    end
+    -- point is far S
+    if (y == ymax) then
+        return {{x-1,ymax},{x+1,ymax},{x,ymax-1}}
+    end
+    
+    -- point is not borderline
+    return {{x-1,y},{x,y+1},{x,y-1},{x+1,y}}
 end
 
 function diagneighborhood(x,y,xmax,ymax)
 	-- Returns the 2, 3 of 4 points in the corners of x,y on a (1,1)...(xmax,ymax) grid
-	if ((x == 1) and (y == 1)) then
-		return {{x+1,y+1}}
-	end
-	if ((x == xmax) and (y == 1)) then
-		return {{x-1,y+1}}
-	end
-	if ((x == 1) and (y == ymax)) then
-		return {{x-1,y-1}}
-	end
-	return {{x-1,y-1},{x+1,y+1},{x+1,y-1},{x-1,y+1}}
+    
+    -- point is one corner?
+    if ((x ==1) and (y==1)) then
+        return {{2,2}}
+    end
+    if ((x ==1) and (y==ymax)) then
+        return {{2,ymax-1}}
+    end
+    if ((x ==xmax) and (y==1)) then
+        return {{xmax-1,2}}
+    end
+    if ((x ==xmax) and (y==ymax)) then
+        return {{xmax-1,ymax-1}}
+    end
+
+    -- point is far W
+    if (x == 1) then
+        return {{2,y-1},{2,y+1}}
+    end
+    -- point is far E
+    if (x == xmax) then
+        return {{xmax-1,y-1},{xmax-1,y+1}}
+    end
+    -- point is far N
+    if (y == 1) then
+        return {{x-1,2},{x+1,2}}
+    end
+    -- point is far S
+    if (y == ymax) then
+        return {{x-1,ymax-1},{x+1,ymax-1}}
+    end
+    
+    -- point is not borderline
+    return {{x-1,y-1},{x-1,y+1},{x+1,y-1},{x+1,y+1}}
 end
 
 function print_table(node)
