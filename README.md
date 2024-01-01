@@ -1,4 +1,4 @@
-# EoD, (c) YouGee 2018-
+# EoD, (c) YouGee 2018-2024
 
 **EoD**, aka *Evolve or Die* is a life simulator.
 Remember [SimLife](https://en.wikipedia.org/wiki/SimLife) back in early 90's? This aims to be my humble clone :)

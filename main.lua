@@ -34,19 +34,22 @@ function love.load()
 	-- Let's create things
 	terraform()
 
+    -- Terrain is now ready in the world table
     -- Render terrain into a canvas, point per point
+    io.write('Terrain rendering in progress...\n')
     canvas = love.graphics.newCanvas(800, 600)
     love.graphics.setCanvas(canvas)
     love.graphics.clear()
     love.graphics.setBlendMode("alpha")
-    love.graphics.scale(2,2)
+    love.graphics.scale(Display_zoom_factor,Display_zoom_factor) -- My eyes are no longer what they were, let zoom the display
     for j=1,world_dimension_height do
         for i=1,world_dimension_width do
-            io.write("Drawing point (",i*5,",",j*5,"), altitude ",world[i][j]," with color ")
-            myColor = altitudeToColor(world[i][j])
-            love.graphics.rectangle("fill",i*5,j*5,4,4)
+            io.write("\tDrawing point (",i,",",j,"), altitude ",world[i][j]," with color ")
+            myColor = altitudeToColor(world[i][j]) -- Get the correct color for the current altitude
+            io.write("(",color.R,",",color.G,",",color.B,")\n")
+            love.graphics.setColor(color.R,color.G,color.B)
+            love.graphics.rectangle("fill",i*Display_tile_size,j*Display_tile_size,Display_tile_size,Display_tile_size) -- a 1x1 tile is too small
         end
-        io.write("\n")
     end
     love.graphics.setCanvas()
 
@@ -76,8 +79,9 @@ end
 -- Terraforming algorithm
 function terraform()
 
-	io.write('Now terraforming...')
-	-- at the beginning, everything was flat
+	io.write("Now terraforming our ",world_dimension_width,"x",world_dimension_height," world...\n")
+
+	-- At the beginning, everything was flat
 	local i,j
 	for i=1,world_dimension_width do
      	world[i] = {}     -- create a new line
@@ -86,18 +90,17 @@ function terraform()
     	end
     end
 
-
-    -- and light green
+    -- And light green
     love.graphics.setColor(ColorLightGreenR/255, ColorLightGreenG/255, ColorLightGreenB/255)
 
-    -- Create the summits
+    -- Create a random number of summits with each one a random atitude
     math.randomseed(os.time())
     NumberOfSummits = math.random(world_config_mountains_minimum_number,world_config_mountains_maximum_number)
     io.write("\tSo there'll be ",NumberOfSummits," summits\n")
     listOfSummits = {}
     for i=1,NumberOfSummits do
-    	sumXcoord = math.random(1,world_dimension_width)	-- X summit coord is ramdomly chosen on the map
-    	sumYcoord = math.random(1,world_dimension_height)	-- Y summit coord is ramdomly chosen on the map
+    	sumXcoord   = math.random(1,world_dimension_width)	-- X summit coord is ramdomly chosen on the map
+    	sumYcoord   = math.random(1,world_dimension_height)	-- Y summit coord is ramdomly chosen on the map
     	sumAltitude = math.random(world_config_mountains_dimension_min,world_config_mountains_dimension_max) -- so is its altitude
     	world[sumXcoord][sumYcoord] = sumAltitude
     	io.write("\tSummit ",i," is located ",sumXcoord,":",sumYcoord," and is ",sumAltitude," high.\n")
@@ -106,15 +109,11 @@ function terraform()
         listOfSummits[i][2] = sumYcoord
     end
     
-    io.write('Our summits are: ')
-    for i=1,table.getn(listOfSummits) do
-    	io.write(i,": ",listOfSummits[i][1],",",listOfSummits[i][2],"\n")
-    end
-    io.write("\n")
-
+    -- Log what the world looks like right now
+    io.write('\n\tInitial world looks like this:\n')
 	displayWorld()
     
-    -- Altitude semi-randomized propagation around the previous summits
+    -- Semi-randomized altitude propagation around the previous summits
 	for i=1,table.getn(listOfSummits) do
 
         sumXcoord = listOfSummits[i][1]
@@ -122,25 +121,26 @@ function terraform()
         myAltitude = world[sumXcoord][sumYcoord]
         io.write("\nTerraforming around summit ",i," (",sumXcoord,",",sumYcoord,") altitude ",myAltitude,"\n")
 
-        -- adjacents points: N, E, S and W
+        -- Adjacents points: N, E, S and W
 		myAdjNeighbors = adjneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
 		nbOfNeighbors = table.getn(myAdjNeighbors)
 		io.write("\tMy ",nbOfNeighbors," adjacent neighbors are:\n")
 		for n=1,nbOfNeighbors do
 			neiXcoord = myAdjNeighbors[n][1]
 			neiYcoord = myAdjNeighbors[n][2]
-            io.write("\t\t",n,": ",neiXcoord,",",neiYcoord," new altitude: ")
+            io.write("\t\t",n,": ",neiXcoord,",",neiYcoord," altitude ")
             newAltitude = math.floor(math.random(world_config_mountains_minpercent_adj_point*myAltitude/100,world_config_mountains_maxpercent_adj_point*myAltitude/100)) -- new random lower altitude
             if (world[neiXcoord][neiYcoord] == 0) then
                 world[neiXcoord][neiYcoord] = newAltitude
-                io.write(world[neiXcoord][neiYcoord]," previous was 0\n")
+                io.write("0 -> ",world[neiXcoord][neiYcoord],"\n")
             else
+                previousAltitude = world[neiXcoord][neiYcoord]
                 world[neiXcoord][neiYcoord] = math.floor((world[neiXcoord][neiYcoord]+newAltitude)/2)
-                io.write(world[neiXcoord][neiYcoord]," as an average with previous altitude\n")
+                io.write(previousAltitude, " -> ",world[neiXcoord][neiYcoord],"\n")
             end
 		end
 
-        -- diagonal points: NE, SE, SW and NW
+        -- Diagonal points: NE, SE, SW and NW
 		myDiagNeighbors = diagneighborhood(sumXcoord,sumYcoord,world_dimension_width,world_dimension_height)
 		nbOfNeighbors = table.getn(myDiagNeighbors)
 		io.write("\tMy ",nbOfNeighbors," diagonal neighbors are:\n")
@@ -159,13 +159,15 @@ function terraform()
 		end
 	end
 
-	displayWorld()
-    io.write('Terraforming done!')
+	-- Log what the world looks like right now
+    io.write('\n\tWorld with propagated altitudes around summits looks like this:\n')
+    displayWorld()
+
+    io.write('Terraforming done!\n\n')
 end
 
 function displayWorld()
-	-- Display world
-    io.write('\nOur world looks like this:\n')
+	-- Display world in the log file
     for j=1,world_dimension_height do
     	io.write("\t")
     	for i=1,world_dimension_width do
@@ -179,13 +181,12 @@ end
 function altitudeToColor (altitude)
     --- Gets the correct color for a given altitude
     if (altitude >= 0) then
-        -- we"re above sea level here
+        -- we're above sea level here
         heightPercentage = altitude/world_config_mountains_dimension_max
         color={}
         color.R = round((ColorLightGreenR+((ColorDarkGreenR-ColorLightGreenR)*heightPercentage)) /255,3)
         color.G = round((ColorLightGreenG+((ColorDarkGreenG-ColorLightGreenG)*heightPercentage)) /255,3)
         color.B = round((ColorLightGreenB+((ColorDarkGreenB-ColorLightGreenB)*heightPercentage)) /255,3)
-        io.write(color.R,",",color.G,",",color.B,"\n")
         return {color.R,color.G,color.B}
     else
         -- wet feet!

@@ -5,4 +5,5 @@
 	* Display:
 		* colorized static display
 # Alpha 0.0.2
-	* Mouse manual terraforming?
+	* Recursive altitude propagation
+	* Mountains other than only peaks
